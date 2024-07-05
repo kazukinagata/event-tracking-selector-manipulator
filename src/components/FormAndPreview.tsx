@@ -11,12 +11,8 @@ import {
   SimpleGrid,
   Stack,
   Switch,
-  Table,
-  Tbody,
-  Td,
   Text,
-  Th,
-  Tr,
+  chakra,
 } from "@chakra-ui/react";
 import { useMemo, useState } from "react";
 
@@ -40,19 +36,27 @@ interface ToogleFavoriteEventTargetOption {
 
 export interface FormAndPreviewProps {
   classNames: string[];
+  onlyInFavClassNames: string[];
+  ariaSelectors: string[];
+  ariaKeys: string[];
+  ariaMap: Map<string, string[]>;
+  onlyInFavAriaKeys: string[];
   dataSelectors: string[];
   datasetKeys: string[];
-  onlyInFavClassNames: string[];
-  ariaNames: string[];
+  datasetMap: Map<string, string[]>;
+  onlyInFavDatasetKeys: string[];
   hasTrackid?: boolean;
 }
 
 export const FormAndPreview: React.FC<FormAndPreviewProps> = ({
   classNames,
+  onlyInFavClassNames,
+  ariaSelectors,
+  ariaKeys,
+  onlyInFavAriaKeys,
   dataSelectors,
   datasetKeys,
-  onlyInFavClassNames,
-  ariaNames,
+  onlyInFavDatasetKeys,
   hasTrackid,
 }) => {
   const [settings, setSettings] = useState<ToogleFavoriteEventTargetOption>({
@@ -66,13 +70,18 @@ export const FormAndPreview: React.FC<FormAndPreviewProps> = ({
       return onlyInFavClassNames;
     }
     if (settings.stateAttr === "data") {
-      return datasetKeys;
+      return onlyInFavDatasetKeys;
     }
     if (settings.stateAttr === "aria") {
-      return ariaNames;
+      return onlyInFavAriaKeys;
     }
     return [];
-  }, [settings.stateAttr, ariaNames, datasetKeys, onlyInFavClassNames]);
+  }, [
+    settings.stateAttr,
+    onlyInFavAriaKeys,
+    onlyInFavDatasetKeys,
+    onlyInFavClassNames,
+  ]);
 
   const javascriptCode = useMemo(() => {
     const optionalFields = [
@@ -134,12 +143,19 @@ const CUSTOM_EVENTS = {
               }));
             }}
             isDisabled={hasTrackid}
+            sx={{
+              '&:has(option[value=""]:checked)': { color: "gray.500" },
+              "& option[value='']": { color: "gray.500" },
+              "& :not(option[value=''])": { color: "gray.800" },
+            }}
           >
-            {[...classNames.map((c) => `.${c}`), ...dataSelectors].map(
-              (name) => (
-                <option key={name}>{name}</option>
-              )
-            )}
+            {[
+              ...classNames.map((c) => `.${c}`),
+              ...dataSelectors,
+              ...ariaSelectors,
+            ].map((name) => (
+              <option key={name}>{name}</option>
+            ))}
           </Select>
           {hasTrackid && <p>trackidが存在するため、selectorの指定は不要です</p>}
         </Box>
@@ -171,7 +187,6 @@ const CUSTOM_EVENTS = {
               <Select
                 size="sm"
                 value={settings.stateAttr ?? ""}
-                placeholder="Select...(optional)"
                 onChange={(e) => {
                   setSettings((prev) => ({
                     ...prev,
@@ -181,9 +196,19 @@ const CUSTOM_EVENTS = {
                     stateKey: undefined,
                   }));
                 }}
+                sx={{
+                  '&:has(option[value=""]:checked)': { color: "gray.500" },
+                  "& option[value='']": { color: "gray.500" },
+                  "& :not(option[value=''])": { color: "gray.800" },
+                }}
               >
+                <chakra.option value="" color="gray.500">
+                  Select...(optional)
+                </chakra.option>
                 {["class", "aria", "data"].map((name) => (
-                  <option key={name}>{name}</option>
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
                 ))}
               </Select>
             </HStack>
@@ -199,6 +224,11 @@ const CUSTOM_EVENTS = {
                   }));
                 }}
                 placeholder="Select...(optional)"
+                sx={{
+                  '&:has(option[value=""]:checked)': { color: "gray.500" },
+                  "& option[value='']": { color: "gray.500" },
+                  "& :not(option[value=''])": { color: "gray.800" },
+                }}
               >
                 {stateKeyOptions.map((name) => (
                   <option key={name}>{name}</option>
@@ -221,6 +251,11 @@ const CUSTOM_EVENTS = {
                 datasetProductKey: e.target.value || undefined,
               }));
             }}
+            sx={{
+              '&:has(option[value=""]:checked)': { color: "gray.500" },
+              "& option[value='']": { color: "gray.500" },
+              "& :not(option[value=''])": { color: "gray.800" },
+            }}
           >
             {datasetKeys.map((name) => (
               <option key={name}>{name}</option>
@@ -240,6 +275,11 @@ const CUSTOM_EVENTS = {
                 ...prev,
                 datasetVariantKey: e.target.value || undefined,
               }));
+            }}
+            sx={{
+              '&:has(option[value=""]:checked)': { color: "gray.500" },
+              "& option[value='']": { color: "gray.500" },
+              "& :not(option[value=''])": { color: "gray.800" },
             }}
           >
             {datasetKeys.map((name) => (

@@ -4,6 +4,8 @@ import { Container, Grid, GridItem, Stack, Text } from "@chakra-ui/react";
 import { useMemo, useState } from "react";
 
 export default function Home() {
+  const [updatedAt, setUpdatedAt] = useState<string | null>(null);
+
   const [elements, setElements] = useState<{
     fav: HTMLElement | null;
     unfav: HTMLElement | null;
@@ -11,12 +13,16 @@ export default function Home() {
     fav: null,
     unfav: null,
   });
+
+  /**
+   * classNames: 両方に存在するclass
+   * onlyInFavClassNames: favにのみ存在するclass
+   */
   const [classNames, onlyInFavClassNames] = useMemo(() => {
     const favList = elements.fav ? Array.from(elements.fav.classList) : [];
     const unfavList = elements.unfav
       ? Array.from(elements.unfav.classList)
       : [];
-    console.log(elements);
     const intersection = favList.filter((className) =>
       unfavList.includes(className)
     );
@@ -26,51 +32,122 @@ export default function Home() {
     return [intersection, onlyInFav];
   }, [elements]);
 
-  const datasetKeys = useMemo(() => {
+  /**
+   * datasetKeys: 両方に存在するdatasetのkey
+   * onlyInFavDatasetKeys: favにのみ存在するdatasetのkey
+   * datasetMap: keyを元にfavとunfavのユニークな値配列を取得するMap
+   */
+  const [datasetKeys, onlyInFavDatasetKeys, datasetMap] = useMemo(() => {
     const fav = elements.fav ? elements.fav.dataset : {};
     const unfav = elements.unfav ? elements.unfav.dataset : {};
+    const kvMap = new Map<string, string[]>();
     const keys = Array.from(
       new Set([...Object.keys(fav), ...Object.keys(unfav)])
     );
-    return keys;
+    const onlyInFav: string[] = [];
+    for (const key of keys) {
+      if (!unfav[key] && !!fav[key]) onlyInFav.push(key);
+      kvMap.set(key, Array.from(new Set([unfav[key] ?? "", fav[key] ?? ""])));
+    }
+    return [keys, onlyInFav, kvMap];
   }, [elements]);
-  const [updatedAt, setUpdatedAt] = useState<string | null>(null);
 
+  /**
+   * dataSelectors:両方の要素を指定できるセレクター文字列の候補
+   */
   const dataSelectors = useMemo(() => {
     const fav = elements.fav
       ? elements.fav
           .getAttributeNames()
           .filter((name) => name.startsWith("data-"))
-          .flatMap((name) => {
-            const val = elements.fav?.getAttribute(name);
-            return val ? `[${name}="${val}"]` : [];
-          })
       : [];
     const unfav = elements.unfav
       ? elements.unfav
           .getAttributeNames()
           .filter((name) => name.startsWith("data-"))
-          .flatMap((name) => {
-            const val = elements.unfav?.getAttribute(name);
-            return val ? `[${name}="${val}"]` : [];
-          })
       : [];
 
-    return Array.from(new Set([...fav, ...unfav]));
+    const intersections: string[] = [];
+    for (const v1 of fav) {
+      for (const v2 of unfav) {
+        if (v1 === v2) {
+          intersections.push(v1);
+        }
+      }
+    }
+    const combinations = intersections.map((dataAttr) =>
+      Array.from(
+        new Set([
+          `[${dataAttr}=${elements.fav?.getAttribute(dataAttr) ?? ""}]`,
+          `[${dataAttr}=${elements.unfav?.getAttribute(dataAttr) ?? ""}]`,
+        ])
+      ).join(",")
+    );
+    return combinations;
   }, [elements]);
 
-  const ariaNames = useMemo(() => {
+  /**
+   * ariaSelectors: 両方の要素を指定できるセレクター文字列の候補
+   */
+  const ariaSelectors = useMemo(() => {
     const fav = elements.fav
-      ? Array.from(elements.fav.getAttributeNames())
-          .filter((name) => name.startsWith("aria-"))
-          .map((v) => v.replace("aria-", ""))
+      ? Array.from(elements.fav.getAttributeNames()).filter((name) =>
+          name.startsWith("aria-")
+        )
       : [];
     const unfav = elements.unfav
-      ? Array.from(elements.unfav.getAttributeNames())
-          .filter((name) => name.startsWith("aria-"))
-          .map((v) => v.replace("aria-", ""))
+      ? Array.from(elements.unfav.getAttributeNames()).filter((name) =>
+          name.startsWith("aria-")
+        )
       : [];
-    return Array.from(new Set([...fav, ...unfav]));
+    const intersections: string[] = [];
+    for (const v1 of fav) {
+      for (const v2 of unfav) {
+        if (v1 === v2) {
+          intersections.push(v1);
+        }
+      }
+    }
+    const combinations = intersections.map((dataAttr) =>
+      Array.from(
+        new Set([
+          `[${dataAttr}=${elements.fav?.getAttribute(dataAttr) ?? ""}]`,
+          `[${dataAttr}=${elements.unfav?.getAttribute(dataAttr) ?? ""}]`,
+        ])
+      ).join(",")
+    );
+    return combinations;
+  }, [elements]);
+
+  /**
+   * ariaKeys: 両方に存在するaria属性のkey
+   * onlyInFavAriaKeys: favにのみ存在するaria属性のkey
+   * ariaMap: keyを元にfavとunfavのユニークな値配列を取得するMap
+   */
+  const [ariaKeys, onlyInFavAriaKeys, ariaMap] = useMemo(() => {
+    const fav = elements.fav
+      ? Array.from(elements.fav.getAttributeNames()).filter((name) =>
+          name.startsWith("aria-")
+        )
+      : [];
+    const unfav = elements.unfav
+      ? Array.from(elements.unfav.getAttributeNames()).filter((name) =>
+          name.startsWith("aria-")
+        )
+      : [];
+    const kvMap = new Map<string, string[]>();
+    const keys = Array.from(new Set([...fav, ...unfav]));
+    const onlyInFav: string[] = [];
+    for (const key of keys) {
+      const favVal = elements.fav?.getAttribute(key);
+      const unfavVal = elements.unfav?.getAttribute(key);
+      if (!!favVal && !unfavVal) onlyInFav.push(key);
+      kvMap.set(
+        key.replace("aria-", ""),
+        Array.from(new Set([unfavVal ?? "", favVal ?? ""]))
+      );
+    }
+    return [keys.map((k) => k.replace("aria-", "")), onlyInFav, kvMap];
   }, [elements]);
 
   const handleChangeUnfav = (el: HTMLElement) => {
@@ -88,7 +165,7 @@ export default function Home() {
 
   return (
     <Container as="main" maxW="container.xl">
-      <h1>誰でもイベント取れるくん v1.0</h1>
+      <h1>誰でもイベント取れるくん v2.0</h1>
       <Grid templateColumns="repeat(12, 1fr)" gap={8} py={16}>
         <GridItem colSpan={3}>
           <Stack>
@@ -122,11 +199,16 @@ export default function Home() {
             <FormAndPreview
               key={updatedAt}
               classNames={classNames}
-              dataSelectors={dataSelectors}
-              ariaNames={ariaNames}
               onlyInFavClassNames={onlyInFavClassNames}
-              hasTrackid={hasTrackid}
+              ariaSelectors={ariaSelectors}
+              ariaKeys={ariaKeys}
+              ariaMap={ariaMap}
+              onlyInFavAriaKeys={onlyInFavAriaKeys}
+              dataSelectors={dataSelectors}
               datasetKeys={datasetKeys}
+              datasetMap={datasetMap}
+              onlyInFavDatasetKeys={onlyInFavDatasetKeys}
+              hasTrackid={hasTrackid}
             />
           )}
         </GridItem>
