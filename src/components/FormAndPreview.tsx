@@ -52,15 +52,22 @@ export const FormAndPreview: React.FC<FormAndPreviewProps> = ({
   classNames,
   onlyInFavClassNames,
   ariaSelectors,
-  ariaKeys,
+  // ariaKeys,
+  // ariaMap,
   onlyInFavAriaKeys,
   dataSelectors,
   datasetKeys,
+  // datasetMap,
   onlyInFavDatasetKeys,
   hasTrackid,
 }) => {
+  const selectorOptions = [
+    ...classNames.map((c) => `.${c}`),
+    ...dataSelectors,
+    ...ariaSelectors,
+  ];
   const [settings, setSettings] = useState<ToogleFavoriteEventTargetOption>({
-    selector: hasTrackid ? "" : classNames[0] ?? "",
+    selector: hasTrackid ? "" : selectorOptions[0] ?? "",
     nativeEvent: "click",
   });
   const [shouldRegisterAfterEvent, setShouldRegisterAfterEvent] =
@@ -149,11 +156,7 @@ const CUSTOM_EVENTS = {
               "& :not(option[value=''])": { color: "gray.800" },
             }}
           >
-            {[
-              ...classNames.map((c) => `.${c}`),
-              ...dataSelectors,
-              ...ariaSelectors,
-            ].map((name) => (
+            {selectorOptions.map((name) => (
               <option key={name}>{name}</option>
             ))}
           </Select>
