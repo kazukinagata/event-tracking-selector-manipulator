@@ -78,8 +78,8 @@ export default function Home() {
     const combinations = intersections.map((dataAttr) =>
       Array.from(
         new Set([
-          `[${dataAttr}=${elements.fav?.getAttribute(dataAttr) ?? ""}]`,
-          `[${dataAttr}=${elements.unfav?.getAttribute(dataAttr) ?? ""}]`,
+          `[${dataAttr}="${elements.fav?.getAttribute(dataAttr) ?? ""}"]`,
+          `[${dataAttr}="${elements.unfav?.getAttribute(dataAttr) ?? ""}"]`,
         ])
       ).join(",")
     );
@@ -111,8 +111,8 @@ export default function Home() {
     const combinations = intersections.map((dataAttr) =>
       Array.from(
         new Set([
-          `[${dataAttr}=${elements.fav?.getAttribute(dataAttr) ?? ""}]`,
-          `[${dataAttr}=${elements.unfav?.getAttribute(dataAttr) ?? ""}]`,
+          `[${dataAttr}="${elements.fav?.getAttribute(dataAttr) ?? ""}"]`,
+          `[${dataAttr}="${elements.unfav?.getAttribute(dataAttr) ?? ""}"]`,
         ])
       ).join(",")
     );
