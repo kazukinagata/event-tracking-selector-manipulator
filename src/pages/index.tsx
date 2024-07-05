@@ -43,7 +43,7 @@ export default function Home() {
           .filter((name) => name.startsWith("data-"))
           .flatMap((name) => {
             const val = elements.fav?.getAttribute(name);
-            return val ? `[data-${name}="${val}"]` : [];
+            return val ? `[${name}="${val}"]` : [];
           })
       : [];
     const unfav = elements.unfav
@@ -52,7 +52,7 @@ export default function Home() {
           .filter((name) => name.startsWith("data-"))
           .flatMap((name) => {
             const val = elements.unfav?.getAttribute(name);
-            return val ? `[data-${name}="${val}"]` : [];
+            return val ? `[${name}="${val}"]` : [];
           })
       : [];
 
